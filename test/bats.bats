@@ -262,3 +262,25 @@ fixtures bats
   [ $status -eq 0 ]
   [ "${lines[1]}" = "ok 1 loop_func" ]
 }
+
+@test "test output_stderr and lines_stderr are populated" {
+  run bats nonexistent
+  [ $status -eq 1 ]
+  [ $(expr "$output_stderr" : ".*does not exist") -ne 0 ]
+  [ "${lines_stdout[0]}" = "" ]
+
+  run bats
+  [ $status -eq 1 ]
+  [ $(expr "${lines_stderr[1]}" : "Usage:") -ne 0 ]
+}
+
+@test "test output_stdout and lines_stdout are populated" {
+  run bats -c "$FIXTURE_ROOT/output.bats"
+  [ $status -eq 0 ]
+  [ "$output_stdout" = "4" ]
+
+  run bats -v
+  [ $status -eq 0 ]
+  [ $(expr "${lines_stdout[0]}" : "Bats [0-9][0-9.]*") -ne 0 ]
+  [ "${lines_stderr[0]}" = "" ]
+}

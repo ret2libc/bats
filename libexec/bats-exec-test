@@ -55,10 +55,17 @@ run() {
   set +e
   set +E
   set +T
-  output="$("$@" 2>&1)"
+  local temp_stdout=$(mktemp -t stdout.XXXXXX)
+  local temp_stderr=$(mktemp -t stderr.XXXXXX)
+
+  ( "$@" 2> "$temp_stderr" 1> "$temp_stdout" )
   status="$?"
   oldIFS=$IFS
-  IFS=$'\n' lines=($output)
+  output_stdout=$( < "$temp_stdout")
+  output_stderr=$( < "$temp_stderr")
+  output="${output_stderr}${output_stdout}"
+
+  IFS=$'\n' lines=($output) lines_stdout=($output_stdout) lines_stderr=($output_stderr)
   [ -z "$e" ] || set -e
   [ -z "$E" ] || set -E
   [ -z "$T" ] || set -T
